@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Producer Service
+  producer:
+    build:
+      context: .
+      dockerfile: Dockerfile.producer
+    container_name: kafka-producer
+    ports:
+      - "3000:3000"
+    environment:
+      - KAFKA_BROKERS=kafka:29092
+    networks:
+      - go-apps-network
+    restart: unless-stopped
+
+  # Consumer Service
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.consumer
+    container_name: kafka-consumer
+    environment:
+      BLUEPRINT_DB_HOST: ${BLUEPRINT_DB_HOST:-localhost}
+      BLUEPRINT_DB_PORT: ${BLUEPRINT_DB_PORT:-5432}
+      BLUEPRINT_DB_DATABASE: ${BLUEPRINT_DB_DATABASE:-kora1}
+      BLUEPRINT_DB_USERNAME: ${BLUEPRINT_DB_USERNAME:-munsandamweemba}
+      BLUEPRINT_DB_PASSWORD: ${BLUEPRINT_DB_PASSWORD:-password1234}
+      BLUEPRINT_DB_SCHEMA: ${BLUEPRINT_DB_SCHEMA:-public}
+    networks:
+      - go-apps-network
+    restart: unless-stopped
+
+networks:
+  go-apps-network:
+    driver: bridge
