@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 jobs:
   deploy:
@@ -20,7 +20,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             cd /opt/microservice-test || exit
-            git pull origin main
+            git pull origin master
             go build -o producer cmd/producer/main.go
             go build -o consumer cmd/consumer/main.go
             pkill -f producer || true
