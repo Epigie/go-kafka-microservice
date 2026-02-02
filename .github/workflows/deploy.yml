@@ -31,4 +31,4 @@ jobs:
           context: ./go-kafka-microservice
           file: ./go-kafka-microservice/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/go-kafka-microservice:latest
+          tags: ghcr.io/epigie/go-kafka-microservice:latest
