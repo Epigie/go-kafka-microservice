@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"os/signal"
@@ -57,10 +58,13 @@ func main() {
 				*messageCountStart++
 				log.Println("Received messages", string(msg.Key), string(msg.Value))
 				// Persist message to database
-				m := models.Message{
-					Content: string(msg.Value),
-					Status:  "received",
+				message := string(msg.Value)
+				// map message to models.message struct
+				var m models.Message
+				if err := json.Unmarshal([]byte(message), &m); err != nil {
+					log.Println("Failed to unmarshal message:", err)
 				}
+				m.Status = "received"
 				if err := database.DB.Create(&m).Error; err != nil {
 					log.Println("Failed to save message:", err)
 				} else {
