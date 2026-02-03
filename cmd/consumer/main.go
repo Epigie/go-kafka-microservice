@@ -3,8 +3,6 @@ package main
 import (
 	"encoding/json"
 	"log"
-	"os"
-	"os/signal"
 
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
@@ -23,8 +21,10 @@ var (
 
 func main() {
 	kingpin.Parse()
+
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
+
 	brokers := *brokerList
 	master, err := sarama.NewConsumer(brokers, config)
 	if err != nil {
@@ -35,47 +35,56 @@ func main() {
 			log.Panic(err)
 		}
 	}()
-	consumer, err := master.ConsumePartition(*topic, *partition, sarama.OffsetOldest)
+
+	// Get all partitions for the topic
+	partitions, err := master.Partitions(*topic)
 	if err != nil {
 		log.Panic(err)
 	}
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt)
-	doneCh := make(chan struct{})
-	go func() {
-		// Ensure DB is initialized
-		dbSvc := database.New()
-		defer func() {
-			if err := dbSvc.Close(); err != nil {
-				log.Println("error closing db:", err)
+
+	messageCount := int64(*messageCountStart) // can use atomic for thread safety
+
+	for _, partition := range partitions {
+		go func(p int32) {
+			consumer, err := master.ConsumePartition(*topic, p, sarama.OffsetOldest)
+			if err != nil {
+				log.Panic(err)
 			}
-		}()
-		for {
-			select {
-			case err := <-consumer.Errors():
-				log.Println(err)
-			case msg := <-consumer.Messages():
-				*messageCountStart++
-				log.Println("Received messages", string(msg.Key), string(msg.Value))
-				// Persist message to database
-				message := string(msg.Value)
-				// map message to models.message struct
-				var m models.Message
-				if err := json.Unmarshal([]byte(message), &m); err != nil {
-					log.Println("Failed to unmarshal message:", err)
+			defer consumer.Close()
+
+			dbSvc := database.New()
+			defer func() {
+				if err := dbSvc.Close(); err != nil {
+					log.Println("error closing db:", err)
 				}
-				m.Status = "received"
-				if err := database.DB.Create(&m).Error; err != nil {
-					log.Println("Failed to save message:", err)
-				} else {
-					log.Println("Saved message ID:", m.ID)
+			}()
+
+			for {
+				select {
+				case err := <-consumer.Errors():
+					log.Println("Consumer error:", err)
+				case msg := <-consumer.Messages():
+					messageCount++
+					log.Printf("Partition:%d Offset:%d Received message: key=%s value=%s\n",
+						msg.Partition, msg.Offset, string(msg.Key), string(msg.Value))
+
+					var m models.Message
+					if err := json.Unmarshal(msg.Value, &m); err != nil {
+						log.Println("Failed to unmarshal message:", err)
+						continue
+					}
+					m.Status = "received"
+					if err := database.DB.Create(&m).Error; err != nil {
+						log.Println("Failed to save message:", err)
+					} else {
+						log.Println("Saved message ID:", m.ID)
+					}
 				}
-			case <-signals:
-				log.Println("Interrupt is detected")
-				doneCh <- struct{}{}
 			}
-		}
-	}()
-	<-doneCh
-	log.Println("Processed", *messageCountStart, "messages")
+		}(partition)
+	}
+
+	// Block forever
+	select {}
 }
+
