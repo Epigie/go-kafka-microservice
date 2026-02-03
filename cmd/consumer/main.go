@@ -15,10 +15,10 @@ import (
 
 var (
 	brokerList        = kingpin.Flag("brokerList", "List of brokers to connect").Short('b').Default("localhost:9092").Strings()
-	topic             = kingpin.Flag("topic", "Topic name").Default("important").String()
-	partition         = kingpin.Flag("partition", "Partition number").Default("0").String()
-	offsetType        = kingpin.Flag("offsetType", "Offset Type (OffsetNewest | OffsetOldest)").Default("-1").Int()
-	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
+	topic             = kingpin.Flag("topic", "Topic name").Short('t').Default("important").String()
+	partition         = kingpin.Flag("partition", "Partition number").Short('p').Default("0").String()
+	offsetType        = kingpin.Flag("offsetType", "Offset Type (OffsetNewest | OffsetOldest)").Short('o').Default("-1").Int()
+	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Short('c').Int()
 )
 
 func main() {
