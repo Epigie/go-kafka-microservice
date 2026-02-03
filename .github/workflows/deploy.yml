@@ -1,4 +1,4 @@
-name: Build, Push & Deploy
+name: Build and Push Docker Images
 
 on:
   push:
@@ -8,6 +8,7 @@ jobs:
   build-and-push:
     name: Build & Push Docker Images to GHCR
     runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'DEPLOY:')
 
     permissions:
       contents: read
@@ -41,9 +42,11 @@ jobs:
           tags: ghcr.io/epigie/go-kafka-producer:latest
 
   deploy:
-    name: Deploy to VPS
+    name: Deploy Docker Images to VPS
     runs-on: ubuntu-latest
     needs: build-and-push
+    if: >
+      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/heads/release/'))
 
     steps:
       - name: Deploy over SSH
