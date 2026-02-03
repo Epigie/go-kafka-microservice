@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	brokerList        = kingpin.Flag("brokerList", "List of brokers to connect").Default("localhost:9092").Strings()
-	topic             = kingpin.Flag("topic", "Topic name").Default("important").String()
-	partition         = kingpin.Flag("partition", "Partition number").Default("0").String()
+	brokerList        = kingpin.Flag("brokerList", "List of brokers to connect").Default("localhost:9092").Envar("KAFKA_BROKERS").Strings()
+	topic             = kingpin.Flag("topic", "Topic name").Default("database").Envar("KAFKA_TOPIC").String()
+	partition         = kingpin.Flag("partition", "Partition number").Default("0").Int32()
 	offsetType        = kingpin.Flag("offsetType", "Offset Type (OffsetNewest | OffsetOldest)").Default("-1").Int()
 	messageCountStart = kingpin.Flag("messageCountStart", "Message counter start from:").Int()
 )
@@ -35,7 +35,7 @@ func main() {
 			log.Panic(err)
 		}
 	}()
-	consumer, err := master.ConsumePartition(*topic, 0, sarama.OffsetOldest)
+	consumer, err := master.ConsumePartition(*topic, *partition, sarama.OffsetOldest)
 	if err != nil {
 		log.Panic(err)
 	}

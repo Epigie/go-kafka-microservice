@@ -26,4 +26,4 @@ WORKDIR /root/
 COPY --from=builder /app/consumer .
 
 # Run the consumer
-CMD ["./consumer", "-brokerList=kafka:29092", "-topic=important"]
+CMD ["./consumer"]

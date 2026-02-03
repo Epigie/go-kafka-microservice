@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	brokerList = kingpin.Flag("brokerList", "List of brokers to connect").Default("localhost:9094").Strings()
-	topic      = kingpin.Flag("topic", "Topic name").Default("important").String()
+	brokerList = kingpin.Flag("brokerList", "List of brokers to connect").Default("localhost:9092").Envar("KAFKA_BROKERS").Strings()
+	topic      = kingpin.Flag("topic", "Topic name").Default("notifications").Envar("KAFKA_TOPIC").String()
 	maxRetry   = kingpin.Flag("maxRetry", "Retry limit").Default("5").Int()
 )
 
@@ -26,7 +26,7 @@ type Message struct {
 func main() {
 	app := gin.Default()
 
-	app.POST("/produce", func(c *gin.Context) {
+	app.POST("/payment", func(c *gin.Context) {
 		var message Message
 		if err := c.ShouldBindJSON(&message); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -35,13 +35,12 @@ func main() {
 		PushToKafka(message)
 		c.JSON(http.StatusOK, gin.H{"message": "Message sent to Kafka"})
 	})
+	kingpin.Parse()
 	app.Run(":3000")
 
 }
 
 func PushToKafka(message Message) {
-
-	kingpin.Parse()
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = *maxRetry

@@ -29,4 +29,4 @@ COPY --from=builder /app/producer .
 EXPOSE 3000
 
 # Run the producer
-CMD ["./producer", "-brokerList=kafka:29092", "-topic=important"]
+CMD ["./producer"]

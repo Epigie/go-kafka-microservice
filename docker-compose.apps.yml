@@ -10,9 +10,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - KAFKA_BROKERS=kafka:29092
+      KAFKA_BROKERS: broker:9092
+      KAFKA_TOPIC: notifications
     networks:
-      - go-apps-network
+      - kafka-network
     restart: unless-stopped
 
   # Consumer Service
@@ -22,6 +23,8 @@ services:
       dockerfile: Dockerfile.consumer
     container_name: kafka-consumer
     environment:
+      KAFKA_BROKERS: broker:9092
+      KAFKA_TOPIC: notifications
       BLUEPRINT_DB_HOST: ${BLUEPRINT_DB_HOST:-localhost}
       BLUEPRINT_DB_PORT: ${BLUEPRINT_DB_PORT:-5432}
       BLUEPRINT_DB_DATABASE: ${BLUEPRINT_DB_DATABASE:-kora1}
@@ -29,9 +32,10 @@ services:
       BLUEPRINT_DB_PASSWORD: ${BLUEPRINT_DB_PASSWORD:-password1234}
       BLUEPRINT_DB_SCHEMA: ${BLUEPRINT_DB_SCHEMA:-public}
     networks:
-      - go-apps-network
+      - kafka-network
     restart: unless-stopped
 
 networks:
-  go-apps-network:
-    driver: bridge
+  kafka-network:
+    external: true
+    name: kafka_setup_default
