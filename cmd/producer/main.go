@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	brokerList = kingpin.Flag("brokerList", "List of brokers to connect").Default("localhost:9092").Envar("KAFKA_BROKERS").Strings()
+	brokerList = kingpin.Flag("brokerList", "List of brokers to connect").Default("broker:9092").Envar("KAFKA_BROKERS").Strings()
 	topic      = kingpin.Flag("topic", "Topic name").Default("notifications").Envar("KAFKA_TOPIC").String()
 	maxRetry   = kingpin.Flag("maxRetry", "Retry limit").Default("5").Int()
 )
