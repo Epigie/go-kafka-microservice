@@ -35,7 +35,7 @@ func main() {
 		PushToKafka(message)
 		c.JSON(http.StatusOK, gin.H{"message": "Message sent to Kafka"})
 	})
-	app.Run(":3000")
+	app.Run(":3001")
 
 }
 
