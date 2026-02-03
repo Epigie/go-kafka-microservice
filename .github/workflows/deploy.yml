@@ -30,7 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile.consumer
           push: true
-          tags: ghcr.io/epigie/notifications-consumer:latest
+          tags: ghcr.io/epigie/go-kafka-consumer:latest
 
       - name: Build and push Producer image
         uses: docker/build-push-action@v5
@@ -38,7 +38,7 @@ jobs:
           context: .
           file: ./Dockerfile.producer
           push: true
-          tags: ghcr.io/epigie/notifications-producer:latest
+          tags: ghcr.io/epigie/go-kafka-producer:latest
 
   deploy:
     name: Deploy to VPS
